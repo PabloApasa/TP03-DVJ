@@ -25,6 +25,7 @@
 *.VC.db
 
 # Excluir modelos de MediaPipe pesados
+Packages/*.tgz
 *.tflite
 *.bytes
 *.task
