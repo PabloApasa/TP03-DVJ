@@ -4,6 +4,7 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+using System;
 using System.Collections;
 using Mediapipe.Tasks.Vision.HandLandmarker;
 using UnityEngine;
@@ -16,8 +17,8 @@ namespace Mediapipe.Unity.Sample.HandLandmarkDetection
     [SerializeField] private HandLandmarkerResultAnnotationController _handLandmarkerResultAnnotationController;
 
     private Experimental.TextureFramePool _textureFramePool;
-
-    public readonly HandLandmarkDetectionConfig config = new HandLandmarkDetectionConfig();
+        public Action<HandLandmarkerResult> OnHandLandmarkResult;
+        public readonly HandLandmarkDetectionConfig config = new HandLandmarkDetectionConfig();
 
     public override void Stop()
     {
