@@ -1,103 +1,129 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro; // <--- 1. Agregamos la librería de TextMeshPro
-
-[System.Serializable]
-public struct SenaItem
-{
-    public string idSena;       // "ILOVEYOU", "NO", "FAMILIA"
-    public string nombreAMostrar;
-    public Sprite imagenSena;
-}
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+    [System.Serializable]
+    public struct ConfigSena
+    {
+        public string nombreSena; // Ej: "ILOVEYOU", "NO", "FAMILIA"
+        public Sprite imagenSena; // Imagen de la seña que se muestra en el pizarrón
+    }
+
+    [Header("Configuración de Señas")]
+    public List<ConfigSena> listaSenas;
+    private int indiceSenaActual = 0;
+
     [Header("Referencias de UI")]
-    public TMP_Text textoProfesora; // <--- 2. Cambiamos 'Text' por 'TMP_Text'
-    public Image imagenPizarron;
-    public TMP_Text textoFeedback;  // <--- 3. Cambiamos 'Text' por 'TMP_Text'
+    public TMP_Text textoProfesora;
+    public TMP_Text textoFeedback;
+    public UnityEngine.UI.Image imagenDisplaySena;
 
-    [Header("Lista de Señas a Enseñar")]
-    public List<SenaItem> listaSenas;
-
-    private int indiceActual = 0;
-    private bool esperandoEntrada = false;
+    [Header("Estado del Juego")]
+    [HideInInspector] public string senaActualTarget = "";
+    private bool esperandoSena = true;
 
     void Start()
     {
-        if (textoFeedback != null) textoFeedback.text = "";
-        CargarSenaActual();
+        if (listaSenas != null && listaSenas.Count > 0)
+        {
+            CargarSenaActual();
+        }
+        else
+        {
+            Debug.LogError("¡Atención! La lista de señas está vacía en el Inspector.");
+        }
     }
 
     void Update()
     {
-        // SIMULACIÓN TECLADO:
-        // Presiona 1 para "I LOVE YOU", 2 para "NO", 3 para "FAMILIA"
-        if (esperandoEntrada)
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha1)) OnSenaDetectada("ILOVEYOU");
-            if (Input.GetKeyDown(KeyCode.Alpha2)) OnSenaDetectada("NO");
-            if (Input.GetKeyDown(KeyCode.Alpha3)) OnSenaDetectada("FAMILIA");
-        }
-    }
-
-    void CargarSenaActual()
-    {
-        if (indiceActual < listaSenas.Count)
-        {
-            SenaItem sena = listaSenas[indiceActual];
-            textoProfesora.text = "¡Hola! Hoy aprenderemos la seña: " + sena.nombreAMostrar;
-            imagenPizarron.sprite = sena.imagenSena;
-            esperandoEntrada = true;
-        }
-        else
-        {
-            textoProfesora.text = "¡Excelente trabajo! Has completado las 3 señas.";
-            imagenPizarron.gameObject.SetActive(false);
-            textoFeedback.text = "¡JUEGO COMPLETADO!";
-        }
-    }
-
-    public void OnSenaDetectada(string idSena)
-    {
-        if (!esperandoEntrada) return;
-
-        if (idSena == listaSenas[indiceActual].idSena)
-        {
-            StartCoroutine(RutinaSenaCorrecta());
-        }
-    }
-
-    public void ProcesarLandmarksMediaPipe(Vector2[] puntosMano)
-    {
-        if (!esperandoEntrada) return;
-
-        string senaActualTarget = listaSenas[indiceActual].idSena;
-
-        if (senaActualTarget == "ILOVEYOU" && EvaluadorSenas.EsILoveYou(puntosMano))
+        // Teclas de prueba rápida (1, 2, 3) para probar la UI sin cámara
+        if (Input.GetKeyDown(KeyCode.Alpha1) && esperandoSena)
         {
             OnSenaDetectada("ILOVEYOU");
         }
-        else if (senaActualTarget == "NO" && EvaluadorSenas.EsSenaNo(puntosMano))
+        else if (Input.GetKeyDown(KeyCode.Alpha2) && esperandoSena)
         {
             OnSenaDetectada("NO");
         }
-        else if (senaActualTarget == "FAMILIA" && EvaluadorSenas.EsFamilia(puntosMano))
+        else if (Input.GetKeyDown(KeyCode.Alpha3) && esperandoSena)
         {
             OnSenaDetectada("FAMILIA");
         }
     }
 
-    IEnumerator RutinaSenaCorrecta()
+    // Este es el método que llama LectorManoMediaPipe.cs en cada frame
+    public void ProcesarLandmarksMediaPipe(Vector2[] puntos)
     {
-        esperandoEntrada = false;
-        textoFeedback.text = "¡CORRECTO!";
-        yield return new WaitForSeconds(2.0f);
-        textoFeedback.text = "";
+        if (!esperandoSena || puntos == null || puntos.Length < 21) return;
 
-        indiceActual++;
-        CargarSenaActual();
+        // --- MONITOREO DE DISTANCIAS ---
+        float dIndice = puntos[8].magnitude;
+        float dMedio = puntos[12].magnitude;
+        float dMenique = puntos[20].magnitude;
+
+        Debug.Log($"[DATOS MANO] Índice: {dIndice:F2} | Medio: {dMedio:F2} | Meñique: {dMenique:F2}");
+
+        // Evaluaciones
+        if (senaActualTarget == "ILOVEYOU" && EvaluadorSenas.EsILoveYou(puntos))
+        {
+            OnSenaDetectada("ILOVEYOU");
+        }
+        else if (senaActualTarget == "NO" && EvaluadorSenas.EsSenaNo(puntos))
+        {
+            OnSenaDetectada("NO");
+        }
+        else if (senaActualTarget == "FAMILIA" && EvaluadorSenas.EsFamilia(puntos))
+        {
+            OnSenaDetectada("FAMILIA");
+        }
+    }
+
+    private void CargarSenaActual()
+    {
+        esperandoSena = true;
+        ConfigSena actual = listaSenas[indiceSenaActual];
+        senaActualTarget = actual.nombreSena;
+
+        if (textoProfesora != null)
+            textoProfesora.text = $"Haz la seña: <b>{senaActualTarget}</b>";
+
+        if (textoFeedback != null)
+            textoFeedback.text = "";
+
+        if (imagenDisplaySena != null && actual.imagenSena != null)
+            imagenDisplaySena.sprite = actual.imagenSena;
+    }
+
+    private void OnSenaDetectada(string senaDetectada)
+    {
+        esperandoSena = false;
+
+        if (textoFeedback != null)
+            textoFeedback.text = "<color=green>¡CORRECTO!</color>";
+
+        StartCoroutine(RutinaSiguienteSena());
+    }
+
+    private IEnumerator RutinaSiguienteSena()
+    {
+        yield return new WaitForSeconds(2.0f);
+
+        indiceSenaActual++;
+        if (indiceSenaActual < listaSenas.Count)
+        {
+            CargarSenaActual();
+        }
+        else
+        {
+            // Fin del nivel o juego
+            if (textoProfesora != null)
+                textoProfesora.text = "¡Felicidades! Has completado todas las señas.";
+
+            if (textoFeedback != null)
+                textoFeedback.text = "<color=yellow>¡Nivel Completado!</color>";
+        }
     }
 }

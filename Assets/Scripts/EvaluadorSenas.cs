@@ -2,52 +2,46 @@ using UnityEngine;
 
 public static class EvaluadorSenas
 {
-    private static float Distancia(Vector2 a, Vector2 b)
+    // Evaluador de "I LOVE YOU" (Índice y Meñique levantados; Medio y Anular más abajo)
+    public static bool EsILoveYou(Vector2[] p)
     {
-        return Vector2.Distance(a, b);
+        if (p == null || p.Length < 21) return false;
+
+        float dIndice = p[8].magnitude;
+        float dMedio = p[12].magnitude;
+        float dAnular = p[16].magnitude;
+        float dMenique = p[20].magnitude;
+
+        // Condición clave: El Índice y el Meñique deben estar más extendidos que el Medio y el Anular
+        bool indiceMayorQueMedio = dIndice > dMedio * 1.1f;
+        bool meniqueMayorQueAnular = dMenique > dAnular * 1.1f;
+
+        return indiceMayorQueMedio && meniqueMayorQueAnular;
     }
 
-    private static bool DedoExtendido(Vector2[] puntos, int tipIndex, int pipIndex)
+    // Evaluador de "NO" (Las puntas de pulgar, índice y medio están muy cerca)
+    public static bool EsSenaNo(Vector2[] p)
     {
-        return Distancia(puntos[tipIndex], Vector2.zero) > Distancia(puntos[pipIndex], Vector2.zero);
+        if (p == null || p.Length < 21) return false;
+
+        float distPulgarIndice = Vector2.Distance(p[4], p[8]);
+        float distIndiceMedio = Vector2.Distance(p[8], p[12]);
+
+        return distPulgarIndice < 0.8f && distIndiceMedio < 0.8f;
     }
 
-    // 1. SEÑA: "I LOVE YOU"
-    public static bool EsILoveYou(Vector2[] mano)
+    // Evaluador de "FAMILIA" (Puntas de pulgar e índice juntas en "OK", el meñique extendido)
+    public static bool EsFamilia(Vector2[] p)
     {
-        bool pulgar = DedoExtendido(mano, 4, 2);
-        bool indice = DedoExtendido(mano, 8, 6);
-        bool medio = DedoExtendido(mano, 12, 10);
-        bool anular = DedoExtendido(mano, 16, 14);
-        bool menique = DedoExtendido(mano, 20, 18);
+        if (p == null || p.Length < 21) return false;
 
-        return pulgar && indice && !medio && !anular && menique;
-    }
+        float distPulgarIndice = Vector2.Distance(p[4], p[8]);
+        float dMenique = p[20].magnitude;
+        float dMedio = p[12].magnitude;
 
-    // 2. SEÑA: "NO"
-    public static bool EsSenaNo(Vector2[] mano)
-    {
-        float distPulgarIndice = Distancia(mano[4], mano[8]);
-        float distIndiceMedio = Distancia(mano[8], mano[12]);
+        bool circuloFormado = distPulgarIndice < 0.7f;
+        bool dedosRestantesArriba = dMenique > 0.6f && dMedio > 0.6f;
 
-        bool pinzaJunta = (distPulgarIndice < 0.08f) && (distIndiceMedio < 0.08f);
-
-        bool anularDoblado = !DedoExtendido(mano, 16, 14);
-        bool meniqueDoblado = !DedoExtendido(mano, 20, 18);
-
-        return pinzaJunta && anularDoblado && meniqueDoblado;
-    }
-
-    // 3. SEÑA: "FAMILIA"
-    public static bool EsFamilia(Vector2[] mano)
-    {
-        float distPulgarIndice = Distancia(mano[4], mano[8]);
-
-        bool circuloFormado = distPulgarIndice < 0.07f;
-        bool medio = DedoExtendido(mano, 12, 10);
-        bool anular = DedoExtendido(mano, 16, 14);
-        bool menique = DedoExtendido(mano, 20, 18);
-
-        return circuloFormado && medio && anular && menique;
+        return circuloFormado && dedosRestantesArriba;
     }
 }

@@ -324,6 +324,22 @@ PrefabInstance:
       propertyPath: textoProfesora
       value: 
       objectReference: {fileID: 1874089252}
+    - target: {fileID: 5570450607350884014, guid: 5d8661ecf9131bb4d9fe747ab8cfa3e6, type: 3}
+      propertyPath: imagenDisplaySena
+      value: 
+      objectReference: {fileID: 1874089251}
+    - target: {fileID: 5570450607350884014, guid: 5d8661ecf9131bb4d9fe747ab8cfa3e6, type: 3}
+      propertyPath: listaSenas.Array.data[0].nombreSena
+      value: ILOVEYOU
+      objectReference: {fileID: 0}
+    - target: {fileID: 5570450607350884014, guid: 5d8661ecf9131bb4d9fe747ab8cfa3e6, type: 3}
+      propertyPath: listaSenas.Array.data[1].nombreSena
+      value: NO
+      objectReference: {fileID: 0}
+    - target: {fileID: 5570450607350884014, guid: 5d8661ecf9131bb4d9fe747ab8cfa3e6, type: 3}
+      propertyPath: listaSenas.Array.data[2].nombreSena
+      value: FAMILIA
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -370,7 +386,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LectorManoMediaPipe
   gameManager: {fileID: 499259988}
-  controllerAnotaciones: {fileID: 0}
+  controllerAnotaciones: {fileID: 1006057044}
 --- !u!4 &527519903
 Transform:
   m_ObjectHideFlags: 0
@@ -394,6 +410,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 204421618382940890, guid: dc156cb5dbbd29e49a1cd58213ed2e08, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2498287583442320855, guid: dc156cb5dbbd29e49a1cd58213ed2e08, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -445,38 +465,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7552632153137817487, guid: dc156cb5dbbd29e49a1cd58213ed2e08, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 925505638}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dc156cb5dbbd29e49a1cd58213ed2e08, type: 3}
---- !u!1 &925505635 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7552632153137817487, guid: dc156cb5dbbd29e49a1cd58213ed2e08, type: 3}
-  m_PrefabInstance: {fileID: 624116322}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &925505638
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 925505635}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 05eabb1f748482441b9ede4ab859625c, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1001 &1006057040
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -672,79 +662,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3259285889726014650, guid: 5713b959e3c77a58fb258133fc8e4aef, type: 3}
   m_PrefabInstance: {fileID: 1006057040}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &1386289845
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 3627287723724575471, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_Name
-      value: Fondo_Pizarron
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 12.12
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 7.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 7.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 3.26
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.908
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3920745499460676543, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 10b87aecd4aa262488e9e37b0c1ab4f8, type: 3}
 --- !u!1 &1806680259
 GameObject:
   m_ObjectHideFlags: 0
@@ -987,6 +904,10 @@ PrefabInstance:
     - target: {fileID: 5438357190140528026, guid: edc471e1e12826c40bceffb38eec4a44, type: 3}
       propertyPath: m_Name
       value: Canvas_Pizarron
+      objectReference: {fileID: 0}
+    - target: {fileID: 5438357190140528026, guid: edc471e1e12826c40bceffb38eec4a44, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6369408622184559217, guid: edc471e1e12826c40bceffb38eec4a44, type: 3}
       propertyPath: m_Enabled
@@ -1393,7 +1314,6 @@ SceneRoots:
   - {fileID: 8571076842648159877}
   - {fileID: 420786856}
   - {fileID: 1064799461}
-  - {fileID: 1386289845}
   - {fileID: 624116322}
   - {fileID: 1874089249}
   - {fileID: 499259987}
