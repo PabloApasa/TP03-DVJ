@@ -1,129 +1,364 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
+using UnityEngine.UI;
+using TMPro; // <--- 1. Agregamos la librerÃ­a de TextMeshPro
+
+[System.Serializable]
+public struct SenaItem
+{
+    public string idSena;       // "ILOVEYOU", "NO", "FAMILIA"
+    public string nombreAMostrar;
+    public Sprite imagenSena;
+}
 
 public class GameManager : MonoBehaviour
 {
     [System.Serializable]
     public struct ConfigSena
     {
-        public string nombreSena; // Ej: "ILOVEYOU", "NO", "FAMILIA"
-        public Sprite imagenSena; // Imagen de la seña que se muestra en el pizarrón
+        public string nombreSena;
+        public Sprite imagenSena;
     }
 
-    [Header("Configuración de Señas")]
+    [Header("ConfiguraciÃ³n de SeÃ±as")]
     public List<ConfigSena> listaSenas;
     private int indiceSenaActual = 0;
 
     [Header("Referencias de UI")]
-    public TMP_Text textoProfesora;
-    public TMP_Text textoFeedback;
-    public UnityEngine.UI.Image imagenDisplaySena;
+    public TMP_Text textoProfesora; // <--- 2. Cambiamos 'Text' por 'TMP_Text'
+    public Image imagenPizarron;
+    public TMP_Text textoFeedback;  // <--- 3. Cambiamos 'Text' por 'TMP_Text'
+
+    [Header("Profesora")]
+    public ProfesoraTTS profesora;
 
     [Header("Estado del Juego")]
     [HideInInspector] public string senaActualTarget = "";
+
     private bool esperandoSena = true;
+
+    // -----------------------------
+    // CONTROL DE DETECCIÃ“N
+    // -----------------------------
+
+    [Header("Control de detecciÃ³n")]
+    [Tooltip("Cantidad de frames consecutivos necesarios para aceptar una seÃ±a")]
+    public int framesNecesarios = 8;
+
+    [Tooltip("Tiempo que esperamos al cargar una nueva seÃ±a antes de reconocer")]
+    public float tiempoPreparacion = 1.0f;
+
+    private int framesCorrectos = 0;
+    private float tiempoInicioSena;
+
 
     void Start()
     {
-        if (listaSenas != null && listaSenas.Count > 0)
-        {
-            CargarSenaActual();
-        }
-        else
-        {
-            Debug.LogError("¡Atención! La lista de señas está vacía en el Inspector.");
-        }
+        if (textoFeedback != null) textoFeedback.text = "";
+        CargarSenaActual();
     }
+
 
     void Update()
     {
-        // Teclas de prueba rápida (1, 2, 3) para probar la UI sin cámara
+        // ----------------------------------
+        // TECLAS DE PRUEBA
+        // ----------------------------------
+
         if (Input.GetKeyDown(KeyCode.Alpha1) && esperandoSena)
         {
-            OnSenaDetectada("ILOVEYOU");
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha2) && esperandoSena)
-        {
-            OnSenaDetectada("NO");
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha3) && esperandoSena)
-        {
-            OnSenaDetectada("FAMILIA");
+            if (Input.GetKeyDown(KeyCode.Alpha1)) OnSenaDetectada("ILOVEYOU");
+            if (Input.GetKeyDown(KeyCode.Alpha2)) OnSenaDetectada("NO");
+            if (Input.GetKeyDown(KeyCode.Alpha3)) OnSenaDetectada("FAMILIA");
         }
     }
 
-    // Este es el método que llama LectorManoMediaPipe.cs en cada frame
+
+    // ==========================================================
+    // MEDIA PIPE
+    // ==========================================================
+
     public void ProcesarLandmarksMediaPipe(Vector2[] puntos)
     {
-        if (!esperandoSena || puntos == null || puntos.Length < 21) return;
+        if (!esperandoSena)
+            return;
 
-        // --- MONITOREO DE DISTANCIAS ---
+        if (puntos == null || puntos.Length < 21)
+            return;
+
+
+        // ----------------------------------
+        // TIEMPO DE PREPARACIÃ“N
+        // ----------------------------------
+
+        if (Time.time - tiempoInicioSena < tiempoPreparacion)
+        {
+            framesCorrectos = 0;
+            return;
+        }
+
+
+        // ----------------------------------
+        // MONITOREO
+        // ----------------------------------
+
         float dIndice = puntos[8].magnitude;
         float dMedio = puntos[12].magnitude;
         float dMenique = puntos[20].magnitude;
 
-        Debug.Log($"[DATOS MANO] Índice: {dIndice:F2} | Medio: {dMedio:F2} | Meñique: {dMenique:F2}");
+        Debug.Log(
+            $"[DATOS MANO] Ãndice: {dIndice:F2} | " +
+            $"Medio: {dMedio:F2} | " +
+            $"MeÃ±ique: {dMenique:F2}"
+        );
 
-        // Evaluaciones
-        if (senaActualTarget == "ILOVEYOU" && EvaluadorSenas.EsILoveYou(puntos))
+
+        // ----------------------------------
+        // EVALUAR SEÃ‘A ACTUAL
+        // ----------------------------------
+
+        bool senaCorrecta = false;
+
+        if (senaActualTarget == "ILOVEYOU")
         {
-            OnSenaDetectada("ILOVEYOU");
+            senaCorrecta = EvaluadorSenas.EsILoveYou(puntos);
         }
-        else if (senaActualTarget == "NO" && EvaluadorSenas.EsSenaNo(puntos))
+        else if (senaActualTarget == "NO")
         {
-            OnSenaDetectada("NO");
+            senaCorrecta = EvaluadorSenas.EsSenaNo(puntos);
         }
-        else if (senaActualTarget == "FAMILIA" && EvaluadorSenas.EsFamilia(puntos))
+        else if (senaActualTarget == "FAMILIA")
         {
-            OnSenaDetectada("FAMILIA");
+            senaCorrecta = EvaluadorSenas.EsFamilia(puntos);
+        }
+
+
+        // ----------------------------------
+        // CONTROL DE FRAMES
+        // ----------------------------------
+
+        if (senaCorrecta)
+        {
+            framesCorrectos++;
+
+            Debug.Log(
+                $"[SEÃ‘A] {senaActualTarget} correcta. " +
+                $"Frames: {framesCorrectos}/{framesNecesarios}"
+            );
+
+
+            if (framesCorrectos >= framesNecesarios)
+            {
+                OnSenaDetectada(senaActualTarget);
+            }
+        }
+        else
+        {
+            // Si pierde la posiciÃ³n correcta,
+            // reiniciamos el contador.
+
+            framesCorrectos = 0;
         }
     }
+
+
+    // ==========================================================
+    // CARGAR NUEVA SEÃ‘A
+    // ==========================================================
 
     private void CargarSenaActual()
     {
         esperandoSena = true;
+
+        framesCorrectos = 0;
+
+        // Guardamos el momento en que apareciÃ³ la nueva seÃ±a
+        tiempoInicioSena = Time.time;
+
+
         ConfigSena actual = listaSenas[indiceSenaActual];
+
         senaActualTarget = actual.nombreSena;
 
+
+        // ----------------------------------
+        // TEXTO
+        // ----------------------------------
+
         if (textoProfesora != null)
-            textoProfesora.text = $"Haz la seña: <b>{senaActualTarget}</b>";
+        {
+            textoProfesora.text =
+                $"Haz la seÃ±a: <b>{senaActualTarget}</b>";
+        }
+
+
+        // ----------------------------------
+        // FEEDBACK
+        // ----------------------------------
 
         if (textoFeedback != null)
+        {
             textoFeedback.text = "";
+        }
+
+
+        // ----------------------------------
+        // IMAGEN
+        // ----------------------------------
 
         if (imagenDisplaySena != null && actual.imagenSena != null)
+        {
             imagenDisplaySena.sprite = actual.imagenSena;
+        }
+
+
+        // ----------------------------------
+        // VOZ
+        // ----------------------------------
+
+        if (profesora != null)
+        {
+            profesora.DarInstruccion();
+        }
+
+
+        Debug.Log(
+            $"[NUEVA SEÃ‘A] Ahora toca: {senaActualTarget}"
+        );
     }
+
+
+    // ==========================================================
+    // SEÃ‘A DETECTADA
+    // ==========================================================
 
     private void OnSenaDetectada(string senaDetectada)
     {
+        // Seguridad adicional
+        if (!esperandoSena)
+            return;
+
+
         esperandoSena = false;
 
+        framesCorrectos = 0;
+
+
+        // ----------------------------------
+        // FEEDBACK
+        // ----------------------------------
+
         if (textoFeedback != null)
-            textoFeedback.text = "<color=green>¡CORRECTO!</color>";
+        {
+            textoFeedback.text =
+                "<color=green>Â¡CORRECTO!</color>";
+        }
+
+
+        // ----------------------------------
+        // VOZ
+        // ----------------------------------
+
+        if (profesora != null)
+        {
+            profesora.Siguiente();
+        }
+
+
+        Debug.Log(
+            $"[CORRECTO] SeÃ±a detectada: {senaDetectada}"
+        );
+
 
         StartCoroutine(RutinaSiguienteSena());
     }
+
+
+    // ==========================================================
+    // SIGUIENTE SEÃ‘A
+    // ==========================================================
 
     private IEnumerator RutinaSiguienteSena()
     {
         yield return new WaitForSeconds(2.0f);
 
+
         indiceSenaActual++;
+
+
         if (indiceSenaActual < listaSenas.Count)
         {
             CargarSenaActual();
         }
         else
         {
-            // Fin del nivel o juego
+            // ----------------------------------
+            // FIN DEL NIVEL
+            // ----------------------------------
+
             if (textoProfesora != null)
-                textoProfesora.text = "¡Felicidades! Has completado todas las señas.";
+            {
+                textoProfesora.text =
+                    "Â¡Felicidades! Has completado todas las seÃ±as.";
+            }
+
 
             if (textoFeedback != null)
-                textoFeedback.text = "<color=yellow>¡Nivel Completado!</color>";
+            {
+                textoFeedback.text =
+                    "<color=yellow>Â¡Nivel Completado!</color>";
+            }
+
+
+            if (profesora != null)
+            {
+                profesora.Finalizar();
+            }
+
+
+            Debug.Log("[JUEGO] Â¡Todas las seÃ±as completadas!");
         }
+    }
+
+    public void OnSenaDetectada(string idSena)
+    {
+        if (!esperandoEntrada) return;
+
+        if (idSena == listaSenas[indiceActual].idSena)
+        {
+            StartCoroutine(RutinaSenaCorrecta());
+        }
+    }
+
+    public void ProcesarLandmarksMediaPipe(Vector2[] puntosMano)
+    {
+        if (!esperandoEntrada) return;
+
+        string senaActualTarget = listaSenas[indiceActual].idSena;
+
+        if (senaActualTarget == "ILOVEYOU" && EvaluadorSenas.EsILoveYou(puntosMano))
+        {
+            OnSenaDetectada("ILOVEYOU");
+        }
+        else if (senaActualTarget == "NO" && EvaluadorSenas.EsSenaNo(puntosMano))
+        {
+            OnSenaDetectada("NO");
+        }
+        else if (senaActualTarget == "FAMILIA" && EvaluadorSenas.EsFamilia(puntosMano))
+        {
+            OnSenaDetectada("FAMILIA");
+        }
+    }
+
+    IEnumerator RutinaSenaCorrecta()
+    {
+        esperandoEntrada = false;
+        textoFeedback.text = "Â¡CORRECTO!";
+        yield return new WaitForSeconds(2.0f);
+        textoFeedback.text = "";
+
+        indiceActual++;
+        CargarSenaActual();
     }
 }
