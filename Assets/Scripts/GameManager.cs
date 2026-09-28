@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro; // <--- 1. Agregamos la librería de TextMeshPro
+using TMPro; // <--- 1. Agregamos la librerÃ­a de TextMeshPro
 
 [System.Serializable]
 public struct SenaItem
@@ -14,8 +14,6 @@ public struct SenaItem
 
 public class GameManager : MonoBehaviour
 {
-<<<<<<< Updated upstream
-=======
     [System.Serializable]
     public struct ConfigSena
     {
@@ -23,23 +21,15 @@ public class GameManager : MonoBehaviour
         public Sprite imagenSena;
     }
 
-    [Header("Configuración de Señas")]
+    [Header("ConfiguraciÃ³n de SeÃ±as")]
     public List<ConfigSena> listaSenas;
     private int indiceSenaActual = 0;
 
->>>>>>> Stashed changes
     [Header("Referencias de UI")]
     public TMP_Text textoProfesora; // <--- 2. Cambiamos 'Text' por 'TMP_Text'
     public Image imagenPizarron;
     public TMP_Text textoFeedback;  // <--- 3. Cambiamos 'Text' por 'TMP_Text'
 
-<<<<<<< Updated upstream
-    [Header("Lista de Señas a Enseñar")]
-    public List<SenaItem> listaSenas;
-
-    private int indiceActual = 0;
-    private bool esperandoEntrada = false;
-=======
     [Header("Profesora")]
     public ProfesoraTTS profesora;
 
@@ -47,17 +37,16 @@ public class GameManager : MonoBehaviour
     [HideInInspector] public string senaActualTarget = "";
 
     private bool esperandoSena = true;
->>>>>>> Stashed changes
 
     // -----------------------------
-    // CONTROL DE DETECCIÓN
+    // CONTROL DE DETECCIÃ“N
     // -----------------------------
 
-    [Header("Control de detección")]
-    [Tooltip("Cantidad de frames consecutivos necesarios para aceptar una seña")]
+    [Header("Control de detecciÃ³n")]
+    [Tooltip("Cantidad de frames consecutivos necesarios para aceptar una seÃ±a")]
     public int framesNecesarios = 8;
 
-    [Tooltip("Tiempo que esperamos al cargar una nueva seña antes de reconocer")]
+    [Tooltip("Tiempo que esperamos al cargar una nueva seÃ±a antes de reconocer")]
     public float tiempoPreparacion = 1.0f;
 
     private int framesCorrectos = 0;
@@ -73,17 +62,11 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-<<<<<<< Updated upstream
-        // SIMULACIÓN TECLADO:
-        // Presiona 1 para "I LOVE YOU", 2 para "NO", 3 para "FAMILIA"
-        if (esperandoEntrada)
-=======
         // ----------------------------------
         // TECLAS DE PRUEBA
         // ----------------------------------
 
         if (Input.GetKeyDown(KeyCode.Alpha1) && esperandoSena)
->>>>>>> Stashed changes
         {
             if (Input.GetKeyDown(KeyCode.Alpha1)) OnSenaDetectada("ILOVEYOU");
             if (Input.GetKeyDown(KeyCode.Alpha2)) OnSenaDetectada("NO");
@@ -91,22 +74,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-<<<<<<< Updated upstream
-    void CargarSenaActual()
-    {
-        if (indiceActual < listaSenas.Count)
-        {
-            SenaItem sena = listaSenas[indiceActual];
-            textoProfesora.text = "¡Hola! Hoy aprenderemos la seña: " + sena.nombreAMostrar;
-            imagenPizarron.sprite = sena.imagenSena;
-            esperandoEntrada = true;
-        }
-        else
-        {
-            textoProfesora.text = "¡Excelente trabajo! Has completado las 3 señas.";
-            imagenPizarron.gameObject.SetActive(false);
-            textoFeedback.text = "¡JUEGO COMPLETADO!";
-=======
 
     // ==========================================================
     // MEDIA PIPE
@@ -122,7 +89,7 @@ public class GameManager : MonoBehaviour
 
 
         // ----------------------------------
-        // TIEMPO DE PREPARACIÓN
+        // TIEMPO DE PREPARACIÃ“N
         // ----------------------------------
 
         if (Time.time - tiempoInicioSena < tiempoPreparacion)
@@ -141,14 +108,14 @@ public class GameManager : MonoBehaviour
         float dMenique = puntos[20].magnitude;
 
         Debug.Log(
-            $"[DATOS MANO] Índice: {dIndice:F2} | " +
+            $"[DATOS MANO] Ãndice: {dIndice:F2} | " +
             $"Medio: {dMedio:F2} | " +
-            $"Meñique: {dMenique:F2}"
+            $"MeÃ±ique: {dMenique:F2}"
         );
 
 
         // ----------------------------------
-        // EVALUAR SEÑA ACTUAL
+        // EVALUAR SEÃ‘A ACTUAL
         // ----------------------------------
 
         bool senaCorrecta = false;
@@ -176,7 +143,7 @@ public class GameManager : MonoBehaviour
             framesCorrectos++;
 
             Debug.Log(
-                $"[SEÑA] {senaActualTarget} correcta. " +
+                $"[SEÃ‘A] {senaActualTarget} correcta. " +
                 $"Frames: {framesCorrectos}/{framesNecesarios}"
             );
 
@@ -188,7 +155,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // Si pierde la posición correcta,
+            // Si pierde la posiciÃ³n correcta,
             // reiniciamos el contador.
 
             framesCorrectos = 0;
@@ -197,7 +164,7 @@ public class GameManager : MonoBehaviour
 
 
     // ==========================================================
-    // CARGAR NUEVA SEÑA
+    // CARGAR NUEVA SEÃ‘A
     // ==========================================================
 
     private void CargarSenaActual()
@@ -206,7 +173,7 @@ public class GameManager : MonoBehaviour
 
         framesCorrectos = 0;
 
-        // Guardamos el momento en que apareció la nueva seña
+        // Guardamos el momento en que apareciÃ³ la nueva seÃ±a
         tiempoInicioSena = Time.time;
 
 
@@ -222,7 +189,7 @@ public class GameManager : MonoBehaviour
         if (textoProfesora != null)
         {
             textoProfesora.text =
-                $"Haz la seña: <b>{senaActualTarget}</b>";
+                $"Haz la seÃ±a: <b>{senaActualTarget}</b>";
         }
 
 
@@ -257,13 +224,13 @@ public class GameManager : MonoBehaviour
 
 
         Debug.Log(
-            $"[NUEVA SEÑA] Ahora toca: {senaActualTarget}"
+            $"[NUEVA SEÃ‘A] Ahora toca: {senaActualTarget}"
         );
     }
 
 
     // ==========================================================
-    // SEÑA DETECTADA
+    // SEÃ‘A DETECTADA
     // ==========================================================
 
     private void OnSenaDetectada(string senaDetectada)
@@ -285,7 +252,7 @@ public class GameManager : MonoBehaviour
         if (textoFeedback != null)
         {
             textoFeedback.text =
-                "<color=green>¡CORRECTO!</color>";
+                "<color=green>Â¡CORRECTO!</color>";
         }
 
 
@@ -300,7 +267,7 @@ public class GameManager : MonoBehaviour
 
 
         Debug.Log(
-            $"[CORRECTO] Seña detectada: {senaDetectada}"
+            $"[CORRECTO] SeÃ±a detectada: {senaDetectada}"
         );
 
 
@@ -309,7 +276,7 @@ public class GameManager : MonoBehaviour
 
 
     // ==========================================================
-    // SIGUIENTE SEÑA
+    // SIGUIENTE SEÃ‘A
     // ==========================================================
 
     private IEnumerator RutinaSiguienteSena()
@@ -333,14 +300,14 @@ public class GameManager : MonoBehaviour
             if (textoProfesora != null)
             {
                 textoProfesora.text =
-                    "¡Felicidades! Has completado todas las señas.";
+                    "Â¡Felicidades! Has completado todas las seÃ±as.";
             }
 
 
             if (textoFeedback != null)
             {
                 textoFeedback.text =
-                    "<color=yellow>¡Nivel Completado!</color>";
+                    "<color=yellow>Â¡Nivel Completado!</color>";
             }
 
 
@@ -350,8 +317,7 @@ public class GameManager : MonoBehaviour
             }
 
 
-            Debug.Log("[JUEGO] ¡Todas las señas completadas!");
->>>>>>> Stashed changes
+            Debug.Log("[JUEGO] Â¡Todas las seÃ±as completadas!");
         }
     }
 
@@ -388,7 +354,7 @@ public class GameManager : MonoBehaviour
     IEnumerator RutinaSenaCorrecta()
     {
         esperandoEntrada = false;
-        textoFeedback.text = "¡CORRECTO!";
+        textoFeedback.text = "Â¡CORRECTO!";
         yield return new WaitForSeconds(2.0f);
         textoFeedback.text = "";
 
