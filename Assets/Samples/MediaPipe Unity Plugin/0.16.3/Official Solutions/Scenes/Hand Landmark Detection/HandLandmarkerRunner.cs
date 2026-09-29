@@ -20,7 +20,10 @@ namespace Mediapipe.Unity.Sample.HandLandmarkDetection
         public Action<HandLandmarkerResult> OnHandLandmarkResult;
         public readonly HandLandmarkDetectionConfig config = new HandLandmarkDetectionConfig();
 
-    public override void Stop()
+        // Indica si MediaPipe está detectando actualmente al menos una mano
+        public bool HayManoDetectada { get; private set; } = false;
+
+        public override void Stop()
     {
       base.Stop();
       _textureFramePool?.Dispose();
@@ -152,9 +155,21 @@ namespace Mediapipe.Unity.Sample.HandLandmarkDetection
       }
     }
 
-    private void OnHandLandmarkDetectionOutput(HandLandmarkerResult result, Image image, long timestamp)
-    {
-      _handLandmarkerResultAnnotationController.DrawLater(result);
+        private void OnHandLandmarkDetectionOutput(
+        HandLandmarkerResult result,
+        Image image,
+        long timestamp)
+        {
+            // Comprobamos si MediaPipe detectó al menos una mano
+            HayManoDetectada =
+                result.handLandmarks != null &&
+                result.handLandmarks.Count > 0;
+
+            // Enviamos el resultado por si otro script necesita utilizarlo
+            OnHandLandmarkResult?.Invoke(result);
+
+            // Actualizamos la visualización
+            _handLandmarkerResultAnnotationController.DrawLater(result);
+        }
     }
-  }
 }
