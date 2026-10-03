@@ -9,6 +9,7 @@ public enum ModoJuego
     Aprendizaje,
     Minijuego
 }
+
 public class GameManager : MonoBehaviour
 {
     [System.Serializable]
@@ -55,6 +56,9 @@ public class GameManager : MonoBehaviour
     private int framesCorrectos = 0;
     private float tiempoInicioSena;
 
+    // Control para evitar la repetición continua de saltos
+    private bool accionEjecutada = false;
+
 
     void Start()
     {
@@ -66,9 +70,7 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError(
-                    "¡Atención! La lista de señas está vacía en el Inspector."
-                );
+                Debug.LogError("¡Atención! La lista de señas está vacía en el Inspector.");
             }
         }
     }
@@ -76,10 +78,7 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // ----------------------------------
-        // TECLAS DE PRUEBA
-        // ----------------------------------
-
+        // Teclas de prueba para testing en editor
         if (Input.GetKeyDown(KeyCode.Alpha1) && esperandoSena)
         {
             OnSenaDetectada("ILOVEYOU");
@@ -102,165 +101,108 @@ public class GameManager : MonoBehaviour
     public void ProcesarLandmarksMediaPipe(Vector2[] puntos)
     {
         if (puntos == null || puntos.Length < 21)
+        {
+            // Si la mano sale de pantalla, liberamos el bloqueo de salto
+            accionEjecutada = false;
             return;
+        }
 
-        // ==========================================
-        // MODO MINIJUEGO
-        // ==========================================
-
+        // Modo Minijuego
         if (modoJuego == ModoJuego.Minijuego)
         {
             ProcesarSenasMinijuego(puntos);
             return;
         }
 
-
-        // ==========================================
-        // MODO APRENDIZAJE
-        // ==========================================
-
+        // Modo Aprendizaje
         if (!esperandoSena)
             return;
 
-
-        float dIndice = puntos[8].magnitude;
-        float dMedio = puntos[12].magnitude;
-        float dMenique = puntos[20].magnitude;
-
-        Debug.Log(
-            $"[DATOS MANO] Índice: {dIndice:F2} | " +
-            $"Medio: {dMedio:F2} | " +
-            $"Meñique: {dMenique:F2}"
-        );
-
-
-        if (senaActualTarget == "ILOVEYOU" &&
-            EvaluadorSenas.EsILoveYou(puntos))
+        if (senaActualTarget == "ILOVEYOU" && EvaluadorSenas.EsILoveYou(puntos))
         {
             OnSenaDetectada("ILOVEYOU");
         }
-        else if (senaActualTarget == "NO" &&
-                 EvaluadorSenas.EsSenaNo(puntos))
+        else if (senaActualTarget == "NO" && EvaluadorSenas.EsSenaNo(puntos))
         {
             OnSenaDetectada("NO");
         }
-        else if (senaActualTarget == "FAMILIA" &&
-                 EvaluadorSenas.EsFamilia(puntos))
+        else if (senaActualTarget == "FAMILIA" && EvaluadorSenas.EsFamilia(puntos))
         {
             OnSenaDetectada("FAMILIA");
         }
     }
-    private bool accionEjecutada = false;
+
 
     private void ProcesarSenasMinijuego(Vector2[] puntos)
     {
-        // I LOVE YOU → SALTAR
-        if (!accionEjecutada &&
-            EvaluadorSenas.EsILoveYou(puntos))
+        bool esILoveYou = EvaluadorSenas.EsILoveYou(puntos);
+        bool esNo = EvaluadorSenas.EsSenaNo(puntos);
+        bool esFamilia = EvaluadorSenas.EsFamilia(puntos);
+
+        // 1. Si detecta una seña y no hemos saltado aún en esta oportunidad:
+        if ((esILoveYou || esNo || esFamilia) && !accionEjecutada)
         {
             accionEjecutada = true;
 
-            if (jugadorMinijuego != null)
+            if (esILoveYou)
             {
-                jugadorMinijuego.Saltar();
+                if (jugadorMinijuego != null) jugadorMinijuego.Saltar(); // Salto 1
+                Debug.Log("I LOVE YOU detectado → SALTO 1");
             }
-
-            Debug.Log("I LOVE YOU detectado → SALTO");
+            else if (esNo)
+            {
+                if (jugadorMinijuego != null) jugadorMinijuego.Saltar2(); // Salto 2
+                Debug.Log("NO detectado → SALTO 2");
+            }
+            else if (esFamilia)
+            {
+                if (jugadorMinijuego != null) jugadorMinijuego.Saltar3(); // Salto 3
+                Debug.Log("FAMILIA detectado → SALTO 3");
+            }
         }
-        // NO → SALTAR2
-
-        if (!accionEjecutada &&
-            EvaluadorSenas.EsSenaNo(puntos))
+        // 2. Si relajas la mano o dejas de hacer las señas válidas:
+        else if (!esILoveYou && !esNo && !esFamilia)
         {
-            accionEjecutada = true;
-
-            if (jugadorMinijuego != null)
-            {
-                jugadorMinijuego.Saltar2();
-            }
-
-            Debug.Log("NO detectado → SALTO2");
-        }
-
-        // FAMILIA → SALTAR3
-
-        if (!accionEjecutada &&
-            EvaluadorSenas.EsFamilia(puntos))
-        {
-            accionEjecutada = true;
-
-            if (jugadorMinijuego != null)
-            {
-                jugadorMinijuego.Saltar3();
-            }
-
-            Debug.Log("FAMILIA detectado → SALTO3");
+            // Reseteamos la bandera para poder hacer el próximo salto
+            accionEjecutada = false;
         }
     }
 
+
     // ==========================================================
-    // CARGAR NUEVA SEÑA
+    // CARGAR NUEVA SEÑA (MODO APRENDIZAJE)
     // ==========================================================
 
     private void CargarSenaActual()
     {
         esperandoSena = true;
-
         framesCorrectos = 0;
-
-        // Guardamos el momento en que apareció la nueva seña
         tiempoInicioSena = Time.time;
 
-
         ConfigSena actual = listaSenas[indiceSenaActual];
-
         senaActualTarget = actual.nombreSena;
-
-
-        // ----------------------------------
-        // TEXTO
-        // ----------------------------------
 
         if (textoProfesora != null)
         {
-            textoProfesora.text =
-                $"Haz la seña: <b>{senaActualTarget}</b>";
+            textoProfesora.text = $"Haz la seña: <b>{senaActualTarget}</b>";
         }
-
-
-        // ----------------------------------
-        // FEEDBACK
-        // ----------------------------------
 
         if (textoFeedback != null)
         {
             textoFeedback.text = "";
         }
 
-
-        // ----------------------------------
-        // IMAGEN
-        // ----------------------------------
-
         if (imagenDisplaySena != null && actual.imagenSena != null)
         {
             imagenDisplaySena.sprite = actual.imagenSena;
         }
-
-
-        // ----------------------------------
-        // VOZ
-        // ----------------------------------
 
         if (profesora != null)
         {
             profesora.DarInstruccion();
         }
 
-
-        Debug.Log(
-            $"[NUEVA SEÑA] Ahora toca: {senaActualTarget}"
-        );
+        Debug.Log($"[NUEVA SEÑA] Ahora toca: {senaActualTarget}");
     }
 
 
@@ -270,44 +212,27 @@ public class GameManager : MonoBehaviour
 
     private void OnSenaDetectada(string senaDetectada)
     {
-        // Seguridad adicional
         if (!esperandoSena)
             return;
 
-
         esperandoSena = false;
-
         framesCorrectos = 0;
-
-
-        // ----------------------------------
-        // FEEDBACK
-        // ----------------------------------
 
         if (textoFeedback != null)
         {
-            textoFeedback.text =
-                "<color=green>¡CORRECTO!</color>";
+            textoFeedback.text = "<color=green>¡CORRECTO!</color>";
         }
-
-
-        // ----------------------------------
-        // VOZ
-        // ----------------------------------
 
         if (profesora != null)
         {
             profesora.Siguiente();
         }
 
-
-        Debug.Log(
-            $"[CORRECTO] Seña detectada: {senaDetectada}"
-        );
-
+        Debug.Log($"[CORRECTO] Seña detectada: {senaDetectada}");
 
         StartCoroutine(RutinaSiguienteSena());
     }
+
     public void ReiniciarAccion()
     {
         accionEjecutada = false;
@@ -330,20 +255,14 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // ----------------------------------
-            // FIN DEL NIVEL
-            // ----------------------------------
-
             if (textoProfesora != null)
             {
-                textoProfesora.text =
-                    "¡Felicidades! Has completado todas las señas.";
+                textoProfesora.text = "¡Felicidades! Has completado todas las señas.";
             }
 
             if (textoFeedback != null)
             {
-                textoFeedback.text =
-                    "<color=yellow>¡Nivel Completado!</color>";
+                textoFeedback.text = "<color=yellow>¡Nivel Completado!</color>";
             }
 
             if (profesora != null)
@@ -353,20 +272,15 @@ public class GameManager : MonoBehaviour
 
             Debug.Log("[JUEGO] ¡Todas las señas completadas!");
 
-            // Esperar antes de cambiar de escena
             StartCoroutine(CambiarDeEscena());
         }
     }
-
 
     private IEnumerator CambiarDeEscena()
     {
         yield return new WaitForSeconds(2f);
 
         int escenaActual = SceneManager.GetActiveScene().buildIndex;
-
         SceneManager.LoadScene(escenaActual + 1);
     }
-
-
 }

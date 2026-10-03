@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 public class JugadorMinijuego : MonoBehaviour
@@ -11,9 +10,9 @@ public class JugadorMinijuego : MonoBehaviour
     public Animator animator;
 
     [Header("Fuerza de Salto")]
-    public float fuerzaSalto = 5f;
-    public float fuerzaSalto2 = 8f;
-    public float fuerzaSalto3 = 10f;
+    public float fuerzaSalto = 5f;  // Salto Corto / Normal
+    public float fuerzaSalto2 = 8f;  // Salto Medio
+    public float fuerzaSalto3 = 10f; // Salto Alto
 
     [Header("Detección de Suelo")]
     public Transform puntoSuelo;
@@ -22,6 +21,50 @@ public class JugadorMinijuego : MonoBehaviour
 
     private bool estaEnSuelo;
 
+    // Control para evitar saltos infinitos continuos mientras se mantiene la seña
+    private bool senaProcesada = false;
+
+    private void Update()
+    {
+        // 1. Obtener los puntos de MediaPipe (Reemplaza este método por tu proveedor real de puntos)
+        Vector2[] puntosMano = ObtenerPuntosMediaPipe();
+
+        // Si no hay datos válidos de la mano, reiniciamos el estado y salimos
+        if (puntosMano == null || puntosMano.Length < 21)
+        {
+            senaProcesada = false;
+            return;
+        }
+
+        // 2. Evaluamos las señas usando el EvaluadorSenas estático
+        bool esNo = EvaluadorSenas.EsSenaNo(puntosMano);
+        bool esILoveYou = EvaluadorSenas.EsILoveYou(puntosMano);
+        bool esFamilia = EvaluadorSenas.EsFamilia(puntosMano);
+
+        // 3. Si el jugador está haciendo alguna seña y aún no ha sido procesada para este gesto
+        if ((esNo || esILoveYou || esFamilia) && !senaProcesada)
+        {
+            if (esNo)
+            {
+                Saltar();   // Fuerza 1 (Ej. Salto Normal)
+            }
+            else if (esILoveYou)
+            {
+                Saltar2();  // Fuerza 2 (Ej. Salto Medio)
+            }
+            else if (esFamilia)
+            {
+                Saltar3();  // Fuerza 3 (Ej. Salto Alto)
+            }
+
+            senaProcesada = true; // Bloquea nuevos saltos hasta que relaje la mano o cambie de seña
+        }
+        // Si ya no está haciendo ninguna seña, permitimos volver a detectar una nueva
+        else if (!esNo && !esILoveYou && !esFamilia)
+        {
+            senaProcesada = false;
+        }
+    }
 
     private void FixedUpdate()
     {
@@ -45,7 +88,6 @@ public class JugadorMinijuego : MonoBehaviour
         ActualizarAnimacion();
     }
 
-
     private void ActualizarAnimacion()
     {
         if (animator == null)
@@ -55,51 +97,26 @@ public class JugadorMinijuego : MonoBehaviour
         animator.SetBool("Saltando", !estaEnSuelo);
     }
 
+    // --- Métodos de Salto ---
 
     public void Saltar()
     {
-        if (rb == null)
-            return;
-
-        if (!estaEnSuelo)
-        {
-            Debug.Log("No puede saltar porque está en el aire.");
-            return;
-        }
-
-        rb.AddForce(
-            Vector2.up * fuerzaSalto,
-            ForceMode2D.Impulse
-        );
-
-        Debug.Log("¡El personaje saltó!");
+        EjecutarSalto(fuerzaSalto, "Saltó (Seña 'NO')");
     }
-
 
     public void Saltar2()
     {
-        if (rb == null)
-            return;
-
-        if (!estaEnSuelo)
-        {
-            Debug.Log("No puede saltar porque está en el aire.");
-            return;
-        }
-
-        rb.AddForce(
-            Vector2.up * fuerzaSalto2,
-            ForceMode2D.Impulse
-        );
-
-        Debug.Log("¡El personaje saltó2!");
+        EjecutarSalto(fuerzaSalto2, "Saltó 2 (Seña 'I LOVE YOU')");
     }
-
 
     public void Saltar3()
     {
-        if (rb == null)
-            return;
+        EjecutarSalto(fuerzaSalto3, "Saltó 3 (Seña 'FAMILIA')");
+    }
+
+    private void EjecutarSalto(float fuerza, string logMensaje)
+    {
+        if (rb == null) return;
 
         if (!estaEnSuelo)
         {
@@ -107,14 +124,24 @@ public class JugadorMinijuego : MonoBehaviour
             return;
         }
 
+        // Reseteamos la velocidad vertical antes de aplicar el impulso
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
+
         rb.AddForce(
-            Vector2.up * fuerzaSalto3,
+            Vector2.up * fuerza,
             ForceMode2D.Impulse
         );
 
-        Debug.Log("¡El personaje saltó3!");
+        Debug.Log("¡" + logMensaje + "!");
     }
 
+    // Método de marcador de posición para obtener los puntos de MediaPipe
+    private Vector2[] ObtenerPuntosMediaPipe()
+    {
+        // AQUÍ CONECTAS TU FUENTE REAL DE MEDIAPIPE EN UNITY
+        // Ejemplo: return MiMediaPipeManager.Instance.ObtenerLandmarksMano();
+        return null;
+    }
 
     private void OnDrawGizmosSelected()
     {
@@ -128,4 +155,4 @@ public class JugadorMinijuego : MonoBehaviour
             radioSuelo
         );
     }
-}
+}   
