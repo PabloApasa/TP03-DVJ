@@ -1,8 +1,14 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
+public enum ModoJuego
+{
+    Aprendizaje,
+    Minijuego
+}
 public class GameManager : MonoBehaviour
 {
     [System.Serializable]
@@ -12,7 +18,7 @@ public class GameManager : MonoBehaviour
         public Sprite imagenSena;
     }
 
-    [Header("Configuración de Señas")]
+    [Header("ConfiguraciÃ³n de SeÃ±as")]
     public List<ConfigSena> listaSenas;
     private int indiceSenaActual = 0;
 
@@ -24,20 +30,26 @@ public class GameManager : MonoBehaviour
     [Header("Profesora")]
     public ProfesoraTTS profesora;
 
+    [Header("Jugador del minijuego")]
+    public JugadorMinijuego jugadorMinijuego;
+
     [Header("Estado del Juego")]
     [HideInInspector] public string senaActualTarget = "";
 
     private bool esperandoSena = true;
 
+    [Header("Modo de juego")]
+    public ModoJuego modoJuego = ModoJuego.Aprendizaje;
+
     // -----------------------------
-    // CONTROL DE DETECCIÓN
+    // CONTROL DE DETECCIÃ“N
     // -----------------------------
 
-    [Header("Control de detección")]
-    [Tooltip("Cantidad de frames consecutivos necesarios para aceptar una seña")]
+    [Header("Control de detecciÃ³n")]
+    [Tooltip("Cantidad de frames consecutivos necesarios para aceptar una seÃ±a")]
     public int framesNecesarios = 8;
 
-    [Tooltip("Tiempo que esperamos al cargar una nueva seña antes de reconocer")]
+    [Tooltip("Tiempo que esperamos al cargar una nueva seÃ±a antes de reconocer")]
     public float tiempoPreparacion = 1.0f;
 
     private int framesCorrectos = 0;
@@ -46,13 +58,18 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        if (listaSenas != null && listaSenas.Count > 0)
+        if (modoJuego == ModoJuego.Aprendizaje)
         {
-            CargarSenaActual();
-        }
-        else
-        {
-            Debug.LogError("¡Atención! La lista de señas está vacía en el Inspector.");
+            if (listaSenas != null && listaSenas.Count > 0)
+            {
+                CargarSenaActual();
+            }
+            else
+            {
+                Debug.LogError(
+                    "Â¡AtenciÃ³n! La lista de seÃ±as estÃ¡ vacÃ­a en el Inspector."
+                );
+            }
         }
     }
 
@@ -84,90 +101,105 @@ public class GameManager : MonoBehaviour
 
     public void ProcesarLandmarksMediaPipe(Vector2[] puntos)
     {
-        if (!esperandoSena)
-            return;
-
         if (puntos == null || puntos.Length < 21)
             return;
 
+        // ==========================================
+        // MODO MINIJUEGO
+        // ==========================================
 
-        // ----------------------------------
-        // TIEMPO DE PREPARACIÓN
-        // ----------------------------------
-
-        if (Time.time - tiempoInicioSena < tiempoPreparacion)
+        if (modoJuego == ModoJuego.Minijuego)
         {
-            framesCorrectos = 0;
+            ProcesarSenasMinijuego(puntos);
             return;
         }
 
 
-        // ----------------------------------
-        // MONITOREO
-        // ----------------------------------
+        // ==========================================
+        // MODO APRENDIZAJE
+        // ==========================================
+
+        if (!esperandoSena)
+            return;
+
 
         float dIndice = puntos[8].magnitude;
         float dMedio = puntos[12].magnitude;
         float dMenique = puntos[20].magnitude;
 
         Debug.Log(
-            $"[DATOS MANO] Índice: {dIndice:F2} | " +
+            $"[DATOS MANO] Ãndice: {dIndice:F2} | " +
             $"Medio: {dMedio:F2} | " +
-            $"Meñique: {dMenique:F2}"
+            $"MeÃ±ique: {dMenique:F2}"
         );
 
 
-        // ----------------------------------
-        // EVALUAR SEÑA ACTUAL
-        // ----------------------------------
-
-        bool senaCorrecta = false;
-
-        if (senaActualTarget == "ILOVEYOU")
+        if (senaActualTarget == "ILOVEYOU" &&
+            EvaluadorSenas.EsILoveYou(puntos))
         {
-            senaCorrecta = EvaluadorSenas.EsILoveYou(puntos);
+            OnSenaDetectada("ILOVEYOU");
         }
-        else if (senaActualTarget == "NO")
+        else if (senaActualTarget == "NO" &&
+                 EvaluadorSenas.EsSenaNo(puntos))
         {
-            senaCorrecta = EvaluadorSenas.EsSenaNo(puntos);
+            OnSenaDetectada("NO");
         }
-        else if (senaActualTarget == "FAMILIA")
+        else if (senaActualTarget == "FAMILIA" &&
+                 EvaluadorSenas.EsFamilia(puntos))
         {
-            senaCorrecta = EvaluadorSenas.EsFamilia(puntos);
+            OnSenaDetectada("FAMILIA");
         }
+    }
+    private bool accionEjecutada = false;
 
-
-        // ----------------------------------
-        // CONTROL DE FRAMES
-        // ----------------------------------
-
-        if (senaCorrecta)
+    private void ProcesarSenasMinijuego(Vector2[] puntos)
+    {
+        // I LOVE YOU â†’ SALTAR
+        if (!accionEjecutada &&
+            EvaluadorSenas.EsILoveYou(puntos))
         {
-            framesCorrectos++;
+            accionEjecutada = true;
 
-            Debug.Log(
-                $"[SEÑA] {senaActualTarget} correcta. " +
-                $"Frames: {framesCorrectos}/{framesNecesarios}"
-            );
-
-
-            if (framesCorrectos >= framesNecesarios)
+            if (jugadorMinijuego != null)
             {
-                OnSenaDetectada(senaActualTarget);
+                jugadorMinijuego.Saltar();
             }
-        }
-        else
-        {
-            // Si pierde la posición correcta,
-            // reiniciamos el contador.
 
-            framesCorrectos = 0;
+            Debug.Log("I LOVE YOU detectado â†’ SALTO");
+        }
+        // NO â†’ SALTAR2
+
+        if (!accionEjecutada &&
+            EvaluadorSenas.EsSenaNo(puntos))
+        {
+            accionEjecutada = true;
+
+            if (jugadorMinijuego != null)
+            {
+                jugadorMinijuego.Saltar2();
+            }
+
+            Debug.Log("NO detectado â†’ SALTO2");
+        }
+
+        // FAMILIA â†’ SALTAR3
+
+        if (!accionEjecutada &&
+            EvaluadorSenas.EsFamilia(puntos))
+        {
+            accionEjecutada = true;
+
+            if (jugadorMinijuego != null)
+            {
+                jugadorMinijuego.Saltar3();
+            }
+
+            Debug.Log("FAMILIA detectado â†’ SALTO3");
         }
     }
 
-
     // ==========================================================
-    // CARGAR NUEVA SEÑA
+    // CARGAR NUEVA SEÃ‘A
     // ==========================================================
 
     private void CargarSenaActual()
@@ -176,7 +208,7 @@ public class GameManager : MonoBehaviour
 
         framesCorrectos = 0;
 
-        // Guardamos el momento en que apareció la nueva seña
+        // Guardamos el momento en que apareciÃ³ la nueva seÃ±a
         tiempoInicioSena = Time.time;
 
 
@@ -192,7 +224,7 @@ public class GameManager : MonoBehaviour
         if (textoProfesora != null)
         {
             textoProfesora.text =
-                $"Haz la seña: <b>{senaActualTarget}</b>";
+                $"Haz la seÃ±a: <b>{senaActualTarget}</b>";
         }
 
 
@@ -227,13 +259,13 @@ public class GameManager : MonoBehaviour
 
 
         Debug.Log(
-            $"[NUEVA SEÑA] Ahora toca: {senaActualTarget}"
+            $"[NUEVA SEÃ‘A] Ahora toca: {senaActualTarget}"
         );
     }
 
 
     // ==========================================================
-    // SEÑA DETECTADA
+    // SEÃ‘A DETECTADA
     // ==========================================================
 
     private void OnSenaDetectada(string senaDetectada)
@@ -255,7 +287,7 @@ public class GameManager : MonoBehaviour
         if (textoFeedback != null)
         {
             textoFeedback.text =
-                "<color=green>¡CORRECTO!</color>";
+                "<color=green>Â¡CORRECTO!</color>";
         }
 
 
@@ -270,25 +302,27 @@ public class GameManager : MonoBehaviour
 
 
         Debug.Log(
-            $"[CORRECTO] Seña detectada: {senaDetectada}"
+            $"[CORRECTO] SeÃ±a detectada: {senaDetectada}"
         );
 
 
         StartCoroutine(RutinaSiguienteSena());
     }
+    public void ReiniciarAccion()
+    {
+        accionEjecutada = false;
+    }
 
 
     // ==========================================================
-    // SIGUIENTE SEÑA
+    // SIGUIENTE SEÃ‘A
     // ==========================================================
 
     private IEnumerator RutinaSiguienteSena()
     {
         yield return new WaitForSeconds(2.0f);
 
-
         indiceSenaActual++;
-
 
         if (indiceSenaActual < listaSenas.Count)
         {
@@ -303,24 +337,36 @@ public class GameManager : MonoBehaviour
             if (textoProfesora != null)
             {
                 textoProfesora.text =
-                    "¡Felicidades! Has completado todas las señas.";
+                    "Â¡Felicidades! Has completado todas las seÃ±as.";
             }
-
 
             if (textoFeedback != null)
             {
                 textoFeedback.text =
-                    "<color=yellow>¡Nivel Completado!</color>";
+                    "<color=yellow>Â¡Nivel Completado!</color>";
             }
-
 
             if (profesora != null)
             {
                 profesora.Finalizar();
             }
 
+            Debug.Log("[JUEGO] Â¡Todas las seÃ±as completadas!");
 
-            Debug.Log("[JUEGO] ¡Todas las señas completadas!");
+            // Esperar antes de cambiar de escena
+            StartCoroutine(CambiarDeEscena());
         }
     }
+
+
+    private IEnumerator CambiarDeEscena()
+    {
+        yield return new WaitForSeconds(2f);
+
+        int escenaActual = SceneManager.GetActiveScene().buildIndex;
+
+        SceneManager.LoadScene(escenaActual + 1);
+    }
+
+
 }

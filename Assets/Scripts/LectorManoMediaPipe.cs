@@ -48,10 +48,11 @@ public class LectorManoMediaPipe : MonoBehaviour
 
         if (!handLandmarkerRunner.HayManoDetectada)
         {
-            // NO procesamos los landmarks antiguos
+            if (gameManager != null)
+                gameManager.ReiniciarAccion();
+
             return;
         }
-
 
         // =====================================================
         // HAY UNA MANO DETECTADA
