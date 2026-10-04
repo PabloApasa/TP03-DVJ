@@ -333,13 +333,25 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1874089251}
     - target: {fileID: 5570450607350884014, guid: 5d8661ecf9131bb4d9fe747ab8cfa3e6, type: 3}
+      propertyPath: listaSenas.Array.data[0].imagenSena
+      value: 
+      objectReference: {fileID: 21300000, guid: d50d4b61afa56cf42921598794a00ef4, type: 3}
+    - target: {fileID: 5570450607350884014, guid: 5d8661ecf9131bb4d9fe747ab8cfa3e6, type: 3}
       propertyPath: listaSenas.Array.data[0].nombreSena
       value: ILOVEYOU
       objectReference: {fileID: 0}
     - target: {fileID: 5570450607350884014, guid: 5d8661ecf9131bb4d9fe747ab8cfa3e6, type: 3}
+      propertyPath: listaSenas.Array.data[1].imagenSena
+      value: 
+      objectReference: {fileID: 21300000, guid: 4d4c41117b82d354a82454008ecd638f, type: 3}
+    - target: {fileID: 5570450607350884014, guid: 5d8661ecf9131bb4d9fe747ab8cfa3e6, type: 3}
       propertyPath: listaSenas.Array.data[1].nombreSena
       value: NO
       objectReference: {fileID: 0}
+    - target: {fileID: 5570450607350884014, guid: 5d8661ecf9131bb4d9fe747ab8cfa3e6, type: 3}
+      propertyPath: listaSenas.Array.data[2].imagenSena
+      value: 
+      objectReference: {fileID: 21300000, guid: 9e4d16044b361c34da9e4fcac2e43d00, type: 3}
     - target: {fileID: 5570450607350884014, guid: 5d8661ecf9131bb4d9fe747ab8cfa3e6, type: 3}
       propertyPath: listaSenas.Array.data[2].nombreSena
       value: FAMILIA
