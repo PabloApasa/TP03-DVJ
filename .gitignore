@@ -24,6 +24,10 @@
 *.opendb
 *.VC.db
 
+Plaintext
+*.slnx
+*.sln
+
 # Excluir modelos de MediaPipe pesados
 Packages/*.tgz
 *.tflite
