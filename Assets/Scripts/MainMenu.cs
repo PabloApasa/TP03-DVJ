@@ -3,18 +3,18 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
-    public GameObject optionsMenu;
+    public GameObject MenuOpciones;
     public GameObject Menu;
 
     public void OpenOptionsPanel()
     {
-        optionsMenu.SetActive(true);
+        MenuOpciones.SetActive(true);
         Menu.SetActive(false);
     }
 
     public void OpenMenuPanel()
     {
-        optionsMenu.SetActive(false);
+        MenuOpciones.SetActive(false);
         Menu.SetActive(true);
     }
 
