@@ -7,11 +7,12 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/Samples/MediaPipe Unity Plugin/0.16.3/Official Solutions/Scenes/Hand
+      Landmark Detection/Menu.unity
+    guid: 0016ae37dcfed7f41b08311002870ba4
+  - enabled: 1
+    path: Assets/Samples/MediaPipe Unity Plugin/0.16.3/Official Solutions/Scenes/Hand
       Landmark Detection/Hand Landmark Detection.unity
     guid: 98d49dcfe667ea822a91d6b74f7cb2e9
-  - enabled: 1
-    path: Assets/Scenes/Menu.unity
-    guid: 0016ae37dcfed7f41b08311002870ba4
   - enabled: 1
     path: Assets/Samples/MediaPipe Unity Plugin/0.16.3/Official Solutions/Scenes/Hand
       Landmark Detection/Nivel_1.unity
